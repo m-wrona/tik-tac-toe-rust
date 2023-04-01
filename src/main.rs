@@ -1,6 +1,7 @@
-pub mod board;
+mod game;
 
 fn main() {
     println!("Hello, world!");
-    board::board::State::new(1, 2);
+    let s0 = game::game::State::new(1, 2);
+    println!("{:?}", s0)
 }
