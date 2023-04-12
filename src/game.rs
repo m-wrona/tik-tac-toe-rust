@@ -2,16 +2,16 @@ use std::fs::File;
 
 pub type Error = String;
 pub type PlayerID = usize;
-type Players = [PlayerID; PLAYERS_COUNT];
-pub type BoardField = usize;
 pub type Board = [PlayerID; BOARD_SIZE];
-pub type WinningCoordinate = [PlayerID; 3];
+type Players = [PlayerID; PLAYERS_COUNT];
+pub type Coordinate = usize;
+pub type WinningCoordinates = [Coordinate; 3];
 
-pub const NO_PLAYER: PlayerID = 0;
-pub const NO_MOVE: i8 = -1;
+const BOARD_SIZE: usize = 9;
 const PLAYERS_COUNT: usize = 2;
-const BOARD_SIZE: BoardField = 9;
-pub const WINNING_COORDINATES: [WinningCoordinate; 8] = [
+pub const NO_PLAYER: PlayerID = 0;
+pub const NO_MOVE: Coordinate = BOARD_SIZE + 1;
+pub const WINNING_COORDINATES: [WinningCoordinates; 8] = [
     //rows
     [0, 1, 2],
     [3, 4, 5],
@@ -27,7 +27,7 @@ pub const WINNING_COORDINATES: [WinningCoordinate; 8] = [
 
 pub trait Player {
     fn id(&self) -> PlayerID;
-    fn next_move(&self, b: Board) -> Result<BoardField, Error>;
+    fn next_move(&self, b: Board) -> Result<Coordinate, Error>;
 }
 
 #[derive(Debug, Clone)]
