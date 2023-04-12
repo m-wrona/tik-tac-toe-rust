@@ -79,7 +79,12 @@ impl Player for AiPlayer {
             }
         }
 
-        //TODO add random moves
-        return Ok(best_next_moves.pop().unwrap_or(NO_MOVE));
+        return Ok(if self.random_moves {
+            let next: usize = random();
+            let idx: usize = next % best_next_moves.len();
+            best_next_moves.swap_remove(idx)
+        } else {
+            best_next_moves.pop().unwrap_or(NO_MOVE)
+        });
     }
 }
