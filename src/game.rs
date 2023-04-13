@@ -1,5 +1,3 @@
-use std::fs::File;
-
 pub type Error = String;
 pub type PlayerID = usize;
 pub type Board = [PlayerID; BOARD_SIZE];
@@ -25,11 +23,6 @@ pub const WINNING_COORDINATES: [WinningCoordinates; 8] = [
     [2, 4, 6],
 ];
 
-pub trait Player {
-    fn id(&self) -> PlayerID;
-    fn next_move(&self, b: Board) -> Result<Coordinate, Error>;
-}
-
 #[derive(Debug, Clone)]
 pub struct State {
     players: Players,
@@ -48,7 +41,7 @@ impl State {
         }
     }
 
-    pub fn make_move(&self, p: &dyn Player) -> Result<State, Error> {
+    pub fn make_move(&self, playerID: PlayerID, x: Coordinate) -> Result<State, Error> {
         let (winner, finished) = self.is_finished();
         if finished {
             return if winner == NO_PLAYER {
@@ -58,25 +51,17 @@ impl State {
             };
         }
 
-        return match p.next_move(self.board) {
-            Err(err) => {
-                Err(format!("player {} couldn't make next move: {}", p.id(), err))
-            }
-
-            Ok(x) => {
-                if x >= BOARD_SIZE {
-                    return Err(format!("player {} made a move outside of board: {}", p.id(), x));
-                } else if self.board[x] != NO_PLAYER {
-                    return Err(format!(
-                        "player {} cannot mark field {} since it's already taken by player {}",
-                        p.id(), x, self.board[x],
-                    ));
-                }
-                let mut c = self.clone();
-                c.board[x] = p.id();
-                Ok(c)
-            }
-        };
+        if x >= BOARD_SIZE {
+            return Err(format!("player {} made a move outside of board: {}", playerID, x));
+        } else if self.board[x] != NO_PLAYER {
+            return Err(format!(
+                "player {} cannot mark field {} since it's already taken by player {}",
+                playerID, x, self.board[x],
+            ));
+        }
+        let mut c = self.clone();
+        c.board[x] = playerID;
+        Ok(c)
     }
 
     fn is_finished(&self) -> (PlayerID, bool) {
@@ -92,5 +77,57 @@ impl State {
             }
         }
         return (NO_PLAYER, is_finished);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::game::{Board, NO_PLAYER, PlayerID, State};
+
+    #[test]
+    fn should_allow_player_to_make_a_move() {
+        let s0 = State::new(1, 2);
+        let id: PlayerID = 1;
+        let s1 = s0.make_move(id, 0).unwrap();
+
+        assert_eq!(s0.board, [0, 0, 0, 0, 0, 0, 0, 0, 0], "invalid initial state");
+        assert_eq!(s0.is_finished(), (NO_PLAYER, false), "game shouldn't be finished");
+
+        assert_eq!(s1.board, [id, 0, 0, 0, 0, 0, 0, 0, 0], "invalid state after move");
+        assert_eq!(s1.is_finished(), (NO_PLAYER, false), "game shouldn't be finished");
+    }
+
+    #[test]
+    fn should_not_make_a_move_when_game_finished() {
+        let id: PlayerID = 5;
+        let mut s0 = State::new(id, 2);
+        s0.board = [id, id, id, 0, 0, 0, 0, 0, 0];
+
+        let s1 = s0.make_move(id, 4);
+        assert_eq!(s1.is_err(), true, "move should fail");
+        assert_eq!(s1.unwrap_err(), "player 5 has already won the game");
+    }
+
+    #[test]
+    fn should_not_make_a_move_when_field_taken() {
+        let id: PlayerID = 5;
+        let mut s0 = State::new(id, 2);
+        s0.board = [7, id, id, 0, 0, 0, 0, 0, 0];
+
+        let s1 = s0.make_move(id, 0);
+        assert_eq!(s1.is_err(), true, "move should fail");
+        assert_eq!(s1.unwrap_err(), "player 5 cannot mark field 0 since it's already taken by player 7");
+    }
+
+    #[test]
+    fn should_finish_game() {
+        let id: PlayerID = 5;
+        let s0 = State::new(id, 2);
+        let s1 = s0.make_move(id, 0)
+            .and_then(|s| s.make_move(id, 1))
+            .and_then(|s| s.make_move(id, 2))
+            .unwrap();
+        assert_eq!(s1.board, [id, id, id, 0, 0, 0, 0, 0, 0], "invalid state after move");
+        assert_eq!(s1.is_finished(), (id, true), "game must be finished");
     }
 }

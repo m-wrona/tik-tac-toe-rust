@@ -1,6 +1,7 @@
 use rand::prelude::*;
 
-use crate::game::{Coordinate, Error, NO_MOVE, NO_PLAYER, Player, PlayerID, WINNING_COORDINATES, WinningCoordinates};
+use crate::game::{Coordinate, Error, NO_MOVE, NO_PLAYER, PlayerID, WINNING_COORDINATES, WinningCoordinates};
+use crate::player::Player;
 
 pub type Score = i8;
 
@@ -10,13 +11,13 @@ const AI_SCORE_WIN: Score = 10;
 const AI_SCORE_DISTURB: Score = 10;
 
 #[derive(Debug)]
-pub struct AiPlayer {
+pub struct AIPlayer {
     player_id: PlayerID,
     random: ThreadRng,
     random_moves: bool,
 }
 
-impl AiPlayer {
+impl AIPlayer {
     pub fn new(id: PlayerID, random_moves: bool) -> Self {
         Self {
             player_id: id,
@@ -58,7 +59,7 @@ impl AiPlayer {
     }
 }
 
-impl Player for AiPlayer {
+impl Player for AIPlayer {
     #[inline]
     fn id(&self) -> PlayerID {
         return self.player_id;

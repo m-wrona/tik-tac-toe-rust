@@ -1,5 +1,6 @@
 mod game;
-mod ai_player;
+mod player;
+mod player_ai;
 
 fn main() {
     println!("Hello, world!");
