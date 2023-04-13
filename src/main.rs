@@ -30,17 +30,15 @@ fn main() {
             }
 
             match p.next_move(state.board()) {
-                Ok(coordinate) => {
-                    match state.make_move(p.id(), coordinate) {
-                        Ok(new_state) => {
-                            state = new_state;
-                        }
-
-                        Err(err) => {
-                            println!("Player {} error: {}", p.id(), err)
-                        }
+                Ok(coordinate) => match state.make_move(p.id(), coordinate) {
+                    Ok(new_state) => {
+                        state = new_state;
                     }
-                }
+
+                    Err(err) => {
+                        println!("Player {} error: {}", p.id(), err)
+                    }
+                },
 
                 Err(err) => {
                     println!("Next move error: {}", err)

@@ -1,6 +1,8 @@
 use rand::prelude::*;
 
-use crate::game::{Coordinate, Error, NO_MOVE, NO_PLAYER, PlayerID, WINNING_COORDINATES, WinningCoordinates};
+use crate::game::{
+    Coordinate, Error, PlayerID, WinningCoordinates, NO_MOVE, NO_PLAYER, WINNING_COORDINATES,
+};
 use crate::player::Player;
 
 pub type Score = i8;
@@ -43,7 +45,11 @@ impl AIPlayer {
         }
     }
 
-    fn evaluate_next_move(&self, b: crate::game::Board, coordinates: WinningCoordinates) -> (Coordinate, Score) {
+    fn evaluate_next_move(
+        &self,
+        b: crate::game::Board,
+        coordinates: WinningCoordinates,
+    ) -> (Coordinate, Score) {
         let mut free: i8 = 0;
         let mut other_player: i8 = 0;
         let mut score = AI_SCORE_DRAW;
@@ -108,9 +114,9 @@ impl Player for AIPlayer {
 
 #[cfg(test)]
 mod tests {
-    use crate::game::{NO_MOVE, NO_PLAYER, PlayerID};
+    use crate::game::{PlayerID, NO_MOVE, NO_PLAYER};
     use crate::player::Player;
-    use crate::player_ai::{AI_SCORE_DISTURB, AI_SCORE_LOST, AI_SCORE_WIN, AIPlayer};
+    use crate::player_ai::{AIPlayer, AI_SCORE_DISTURB, AI_SCORE_LOST, AI_SCORE_WIN};
 
     #[test]
     fn should_evaluate_first_winning_move() {
@@ -118,9 +124,8 @@ mod tests {
         let ai = AIPlayer::new(id);
         let (next_move, score) = ai.evaluate_next_move(
             [
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER,
             ],
             [0, 1, 2],
         );
@@ -134,9 +139,8 @@ mod tests {
         let ai = AIPlayer::new(id);
         let (next_move, score) = ai.evaluate_next_move(
             [
-                id, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                id, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER,
             ],
             [0, 1, 2],
         );
@@ -150,9 +154,7 @@ mod tests {
         let ai = AIPlayer::new(id);
         let (next_move, score) = ai.evaluate_next_move(
             [
-                id, id, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                id, id, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
             ],
             [0, 1, 2],
         );
@@ -165,14 +167,8 @@ mod tests {
         let id: PlayerID = 1;
         let id2: PlayerID = 2;
         let ai = AIPlayer::new(id);
-        let (next_move, score) = ai.evaluate_next_move(
-            [
-                id2, id2, id2,
-                id2, id2, id2,
-                id2, id2, id2,
-            ],
-            [0, 1, 2],
-        );
+        let (next_move, score) =
+            ai.evaluate_next_move([id2, id2, id2, id2, id2, id2, id2, id2, id2], [0, 1, 2]);
         assert_eq!(next_move, NO_MOVE, "wrong first move");
         assert_eq!(score, AI_SCORE_LOST, "wrong score");
     }
@@ -184,9 +180,7 @@ mod tests {
         let ai = AIPlayer::new(id);
         let (next_move, score) = ai.evaluate_next_move(
             [
-                id2, id2, id2,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                id2, id2, id2, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
             ],
             [0, 1, 2],
         );
@@ -201,9 +195,8 @@ mod tests {
         let ai = AIPlayer::new(id);
         let (next_move, score) = ai.evaluate_next_move(
             [
-                NO_PLAYER, id2, id2,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, id2, id2, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER,
             ],
             [0, 1, 2],
         );
@@ -215,11 +208,12 @@ mod tests {
     fn should_make_first_move() {
         let id: PlayerID = 1;
         let ai = AIPlayer::new(id);
-        let next_move = ai.next_move([
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-        ]).unwrap();
+        let next_move = ai
+            .next_move([
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER,
+            ])
+            .unwrap();
         assert_eq!(next_move, 0, "wrong first move");
     }
 
@@ -227,11 +221,11 @@ mod tests {
     fn should_make_a_winning_move() {
         let id: PlayerID = 1;
         let ai = AIPlayer::new(id);
-        let next_move = ai.next_move([
-            NO_PLAYER, id, id,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-        ]).unwrap();
+        let next_move = ai
+            .next_move([
+                NO_PLAYER, id, id, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            ])
+            .unwrap();
         assert_eq!(next_move, 0, "wrong winning move");
     }
 
@@ -240,11 +234,9 @@ mod tests {
         let id: PlayerID = 1;
         let id2: PlayerID = 2;
         let ai = AIPlayer::new(id);
-        let next_move = ai.next_move([
-            NO_PLAYER, id2, id2,
-            id, id, id2,
-            id2, id, id,
-        ]).unwrap();
+        let next_move = ai
+            .next_move([NO_PLAYER, id2, id2, id, id, id2, id2, id, id])
+            .unwrap();
         assert_eq!(next_move, 0, "wrong winning move");
     }
 
@@ -253,11 +245,9 @@ mod tests {
         let id: PlayerID = 1;
         let id2: PlayerID = 2;
         let ai = AIPlayer::new(id);
-        let next_move = ai.next_move([
-            NO_PLAYER, id2, id2,
-            id, NO_PLAYER, id2,
-            id2, id, id,
-        ]).unwrap();
+        let next_move = ai
+            .next_move([NO_PLAYER, id2, id2, id, NO_PLAYER, id2, id2, id, id])
+            .unwrap();
         assert_eq!(next_move, 0, "wrong winning move");
     }
 
@@ -266,11 +256,9 @@ mod tests {
         let id: PlayerID = 1;
         let id2: PlayerID = 2;
         let ai = AIPlayer::new(id);
-        let next_move = ai.next_move([
-            id, id2, id2,
-            id2, NO_PLAYER, id2,
-            id2, id, NO_PLAYER,
-        ]).unwrap();
+        let next_move = ai
+            .next_move([id, id2, id2, id2, NO_PLAYER, id2, id2, id, NO_PLAYER])
+            .unwrap();
         assert_eq!(next_move, 4, "wrong winning move");
     }
 }

@@ -2,7 +2,7 @@ use std::io;
 use std::io::Stdin;
 use std::str::FromStr;
 
-use crate::game::{Coordinate, Error, NO_MOVE, PlayerID};
+use crate::game::{Coordinate, Error, PlayerID, NO_MOVE};
 use crate::player::Player;
 
 #[derive(Debug)]
@@ -35,9 +35,7 @@ impl Player for HumanPlayer {
                 Ok(next_move)
             }
 
-            Err(err) => {
-                Err(format!("user input error: {}", err))
-            }
+            Err(err) => Err(format!("user input error: {}", err)),
         };
     }
 }

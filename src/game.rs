@@ -34,9 +34,9 @@ impl State {
         Self {
             players: [p1, p2],
             board: [
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
-                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
             ],
         }
     }
@@ -60,7 +60,10 @@ impl State {
         }
 
         if x >= BOARD_SIZE {
-            return Err(format!("player {} made a move outside of board: {}", player_id, x));
+            return Err(format!(
+                "player {} made a move outside of board: {}",
+                player_id, x
+            ));
         } else if self.board[x] != NO_PLAYER {
             return Err(format!(
                 "player {} cannot mark field {} since it's already taken by player {}",
@@ -90,7 +93,7 @@ impl State {
 
 #[cfg(test)]
 mod tests {
-    use crate::game::{NO_PLAYER, PlayerID, State, WINNING_COORDINATES};
+    use crate::game::{PlayerID, State, NO_PLAYER, WINNING_COORDINATES};
 
     #[test]
     fn should_allow_player_to_make_a_move() {
@@ -98,19 +101,35 @@ mod tests {
         let id: PlayerID = 1;
         let s1 = s0.make_move(id, 0).unwrap();
 
-        assert_eq!(s0.board, [
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-        ], "invalid initial state");
-        assert_eq!(s0.is_finished(), (NO_PLAYER, false), "game shouldn't be finished");
+        assert_eq!(
+            s0.board,
+            [
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+            ],
+            "invalid initial state"
+        );
+        assert_eq!(
+            s0.is_finished(),
+            (NO_PLAYER, false),
+            "game shouldn't be finished"
+        );
 
-        assert_eq!(s1.board, [
-            id, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-        ], "invalid state after move");
-        assert_eq!(s1.is_finished(), (NO_PLAYER, false), "game shouldn't be finished");
+        assert_eq!(
+            s1.board,
+            [
+                id, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+            ],
+            "invalid state after move"
+        );
+        assert_eq!(
+            s1.is_finished(),
+            (NO_PLAYER, false),
+            "game shouldn't be finished"
+        );
     }
 
     #[test]
@@ -118,9 +137,9 @@ mod tests {
         let id: PlayerID = 5;
         let mut s0 = State::new(id, 2);
         s0.board = [
-            id, id, id,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            id, id, id, //no formatting
+            NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+            NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
         ];
 
         let s1 = s0.make_move(id, 4);
@@ -134,14 +153,17 @@ mod tests {
         let id2: PlayerID = 7;
         let mut s0 = State::new(id, id2);
         s0.board = [
-            id2, id, id,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            id2, id, id, //no formatting
+            NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+            NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
         ];
 
         let s1 = s0.make_move(id, 0);
         assert_eq!(s1.is_err(), true, "move should fail");
-        assert_eq!(s1.unwrap_err(), "player 5 cannot mark field 0 since it's already taken by player 7");
+        assert_eq!(
+            s1.unwrap_err(),
+            "player 5 cannot mark field 0 since it's already taken by player 7"
+        );
     }
 
     #[test]
@@ -157,16 +179,21 @@ mod tests {
     fn should_finish_game() {
         let id: PlayerID = 5;
         let s0 = State::new(id, 2);
-        let s1 = s0.make_move(id, 0)
+        let s1 = s0
+            .make_move(id, 0)
             .and_then(|s| s.make_move(id, 1))
             .and_then(|s| s.make_move(id, 2))
             .unwrap();
 
-        assert_eq!(s1.board, [
-            id, id, id,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-            NO_PLAYER, NO_PLAYER, NO_PLAYER,
-        ], "invalid state after move");
+        assert_eq!(
+            s1.board,
+            [
+                id, id, id, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+                NO_PLAYER, NO_PLAYER, NO_PLAYER, //no formatting
+            ],
+            "invalid state after move"
+        );
         assert_eq!(s1.is_finished(), (id, true), "game must be finished");
     }
 
@@ -175,7 +202,8 @@ mod tests {
         let id: PlayerID = 5;
         let s0 = State::new(id, 2);
         for coordinates in WINNING_COORDINATES {
-            let s1 = s0.make_move(id, coordinates[0])
+            let s1 = s0
+                .make_move(id, coordinates[0])
                 .and_then(|s| s.make_move(id, coordinates[1]))
                 .and_then(|s| s.make_move(id, coordinates[2]))
                 .unwrap();
