@@ -32,8 +32,8 @@ fn main() {
             match p.next_move(state.board()) {
                 Ok(coordinate) => {
                     match state.make_move(p.id(), coordinate) {
-                        Ok(newState) => {
-                            state = newState;
+                        Ok(new_state) => {
+                            state = new_state;
                         }
 
                         Err(err) => {

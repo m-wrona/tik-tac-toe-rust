@@ -2,8 +2,6 @@ use std::io;
 use std::io::Stdin;
 use std::str::FromStr;
 
-use rand::prelude::*;
-
 use crate::game::{Coordinate, Error, NO_MOVE, PlayerID};
 use crate::player::Player;
 
@@ -28,11 +26,11 @@ impl Player for HumanPlayer {
         return self.player_id;
     }
 
-    fn next_move(&self, b: crate::game::Board) -> Result<Coordinate, Error> {
+    fn next_move(&self, _: crate::game::Board) -> Result<Coordinate, Error> {
         let mut buffer = String::new();
         println!("Waiting for player {} move....", self.player_id);
         return match self.io.read_line(&mut buffer) {
-            Ok(n) => {
+            Ok(_) => {
                 let next_move = usize::from_str(buffer.trim_end()).unwrap_or(NO_MOVE);
                 Ok(next_move)
             }

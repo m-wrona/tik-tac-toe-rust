@@ -17,7 +17,6 @@ pub struct AIPlayer {
     move_strategy: NextMoveStrategy,
 }
 
-
 impl AIPlayer {
     pub fn first_move_strategy() -> NextMoveStrategy {
         return |possible_moves: Vec<Coordinate>| -> Coordinate {
@@ -109,11 +108,9 @@ impl Player for AIPlayer {
 
 #[cfg(test)]
 mod tests {
-    use std::ops::Bound::Included;
-
     use crate::game::{NO_MOVE, NO_PLAYER, PlayerID};
     use crate::player::Player;
-    use crate::player_ai::{AI_SCORE_DISTURB, AI_SCORE_DRAW, AI_SCORE_LOST, AI_SCORE_WIN, AIPlayer};
+    use crate::player_ai::{AI_SCORE_DISTURB, AI_SCORE_LOST, AI_SCORE_WIN, AIPlayer};
 
     #[test]
     fn should_evaluate_first_winning_move() {
