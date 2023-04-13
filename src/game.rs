@@ -41,6 +41,10 @@ impl State {
         }
     }
 
+    pub fn board(&self) -> Board {
+        return self.board;
+    }
+
     pub fn make_move(&self, player_id: PlayerID, x: Coordinate) -> Result<State, Error> {
         if player_id != self.players[0] && player_id != self.players[1] {
             return Err(format!("player {} doesn't play this game", player_id));
@@ -68,7 +72,7 @@ impl State {
         Ok(c)
     }
 
-    fn is_finished(&self) -> (PlayerID, bool) {
+    pub fn is_finished(&self) -> (PlayerID, bool) {
         let mut is_finished = true;
         for coordinates in WINNING_COORDINATES {
             let x = self.board[coordinates[0]];
