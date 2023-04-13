@@ -41,7 +41,11 @@ impl State {
         }
     }
 
-    pub fn make_move(&self, playerID: PlayerID, x: Coordinate) -> Result<State, Error> {
+    pub fn make_move(&self, player_id: PlayerID, x: Coordinate) -> Result<State, Error> {
+        if player_id!= self.players[0] && player_id!=self.players[1] {
+            return Err(format!("player {} doesn't play this game", player_id))
+        }
+
         let (winner, finished) = self.is_finished();
         if finished {
             return if winner == NO_PLAYER {
@@ -52,15 +56,15 @@ impl State {
         }
 
         if x >= BOARD_SIZE {
-            return Err(format!("player {} made a move outside of board: {}", playerID, x));
+            return Err(format!("player {} made a move outside of board: {}", player_id, x));
         } else if self.board[x] != NO_PLAYER {
             return Err(format!(
                 "player {} cannot mark field {} since it's already taken by player {}",
-                playerID, x, self.board[x],
+                player_id, x, self.board[x],
             ));
         }
         let mut c = self.clone();
-        c.board[x] = playerID;
+        c.board[x] = player_id;
         Ok(c)
     }
 
@@ -82,7 +86,7 @@ impl State {
 
 #[cfg(test)]
 mod tests {
-    use crate::game::{Board, NO_PLAYER, PlayerID, State};
+    use crate::game::{NO_PLAYER, PlayerID, State, WINNING_COORDINATES};
 
     #[test]
     fn should_allow_player_to_make_a_move() {
@@ -111,12 +115,22 @@ mod tests {
     #[test]
     fn should_not_make_a_move_when_field_taken() {
         let id: PlayerID = 5;
-        let mut s0 = State::new(id, 2);
-        s0.board = [7, id, id, 0, 0, 0, 0, 0, 0];
+        let id2 :PlayerID=7;
+        let mut s0 = State::new(id, id2);
+        s0.board = [id2, id, id, 0, 0, 0, 0, 0, 0];
 
         let s1 = s0.make_move(id, 0);
         assert_eq!(s1.is_err(), true, "move should fail");
         assert_eq!(s1.unwrap_err(), "player 5 cannot mark field 0 since it's already taken by player 7");
+    }
+
+    #[test]
+    fn should_not_allow_to_make_a_move_by_unknown_player() {
+        let s0 = State::new(1, 2);
+        let s1 = s0.make_move(7, 0);
+
+        assert_eq!(s1.is_err(), true, "move should fail");
+        assert_eq!(s1.unwrap_err(), "player 7 doesn't play this game");
     }
 
     #[test]
@@ -129,5 +143,18 @@ mod tests {
             .unwrap();
         assert_eq!(s1.board, [id, id, id, 0, 0, 0, 0, 0, 0], "invalid state after move");
         assert_eq!(s1.is_finished(), (id, true), "game must be finished");
+    }
+
+    #[test]
+    fn should_win_the_game_using_winning_coordinates() {
+        let id: PlayerID = 5;
+        let s0 = State::new(id, 2);
+        for coordinates in WINNING_COORDINATES {
+            let s1 = s0.make_move(id, coordinates[0])
+                .and_then(|s| s.make_move(id, coordinates[1]))
+                .and_then(|s| s.make_move(id, coordinates[2]))
+                .unwrap();
+            assert_eq!(s1.is_finished(), (id, true), "game must be finished");
+        }
     }
 }

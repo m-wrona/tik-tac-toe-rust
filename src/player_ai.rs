@@ -13,7 +13,6 @@ const AI_SCORE_DISTURB: Score = 10;
 #[derive(Debug)]
 pub struct AIPlayer {
     player_id: PlayerID,
-    random: ThreadRng,
     random_moves: bool,
 }
 
@@ -21,7 +20,6 @@ impl AIPlayer {
     pub fn new(id: PlayerID, random_moves: bool) -> Self {
         Self {
             player_id: id,
-            random: thread_rng(),
             random_moves,
         }
     }
