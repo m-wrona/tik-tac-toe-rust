@@ -42,7 +42,7 @@ impl State {
     }
 
     pub fn board(&self) -> Board {
-        return self.board;
+        self.board
     }
 
     pub fn make_move(&self, player_id: PlayerID, x: Coordinate) -> Result<State, Error> {
@@ -53,7 +53,7 @@ impl State {
         let (winner, finished) = self.is_finished();
         if finished {
             return if winner == NO_PLAYER {
-                Err(format!("game has finished with a draw"))
+                Err("game has finished with a draw".to_string())
             } else {
                 Err(format!("player {} has already won the game", winner))
             };
@@ -87,7 +87,7 @@ impl State {
                 return (x, true);
             }
         }
-        return (NO_PLAYER, is_finished);
+        (NO_PLAYER, is_finished)
     }
 }
 

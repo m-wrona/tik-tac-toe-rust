@@ -13,17 +13,17 @@ pub struct HumanPlayer {
 
 impl HumanPlayer {
     pub fn new(player_id: PlayerID) -> Self {
-        return Self {
+        Self {
             player_id,
             io: io::stdin(),
-        };
+        }
     }
 }
 
 impl Player for HumanPlayer {
     #[inline]
     fn id(&self) -> PlayerID {
-        return self.player_id;
+        self.player_id
     }
 
     fn next_move(&self, _: crate::game::Board) -> Result<Coordinate, Error> {

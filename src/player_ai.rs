@@ -20,22 +20,22 @@ pub struct AIPlayer {
 }
 
 impl AIPlayer {
+    #[allow(dead_code)]
     pub fn first_move_strategy() -> NextMoveStrategy {
-        return |possible_moves: Vec<Coordinate>| -> Coordinate {
-            return possible_moves.clone().swap_remove(0);
-        };
+        |mut possible_moves: Vec<Coordinate>| -> Coordinate { possible_moves.swap_remove(0) }
     }
 
     pub fn random_move_strategy() -> NextMoveStrategy {
-        return |possible_moves: Vec<Coordinate>| -> Coordinate {
+        |mut possible_moves: Vec<Coordinate>| -> Coordinate {
             let next: usize = random();
             let idx: usize = next % possible_moves.len();
-            return possible_moves.clone().swap_remove(idx);
-        };
+            possible_moves.swap_remove(idx)
+        }
     }
 
+    #[allow(dead_code)]
     pub fn new(id: PlayerID) -> Self {
-        return Self::new_with_strategy(id, Self::first_move_strategy());
+        Self::new_with_strategy(id, Self::first_move_strategy())
     }
 
     pub fn new_with_strategy(player_id: PlayerID, move_strategy: NextMoveStrategy) -> Self {
@@ -78,14 +78,14 @@ impl AIPlayer {
             //still can win
             score = AI_SCORE_WIN / free
         }
-        return (next_coordinate, score);
+        (next_coordinate, score)
     }
 }
 
 impl Player for AIPlayer {
     #[inline]
     fn id(&self) -> PlayerID {
-        return self.player_id;
+        self.player_id
     }
 
     fn next_move(&self, b: crate::game::Board) -> Result<Coordinate, Error> {
@@ -108,7 +108,7 @@ impl Player for AIPlayer {
         }
 
         let next_move = (self.move_strategy)(best_moves);
-        return Ok(next_move);
+        Ok(next_move)
     }
 }
 
