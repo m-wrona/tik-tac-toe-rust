@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+
 use rand::prelude::*;
 
 use crate::game::{
@@ -94,12 +96,18 @@ impl Player for AIPlayer {
 
         for coordinates in WINNING_COORDINATES {
             let (next_move, score) = self.evaluate_next_move(b, coordinates);
-            if score > best_score {
-                best_score = score;
-                best_moves.clear();
-                best_moves.push(next_move);
-            } else if score == best_score {
-                best_moves.push(next_move);
+            match score.cmp(&best_score) {
+                Ordering::Greater => {
+                    best_score = score;
+                    best_moves.clear();
+                    best_moves.push(next_move);
+                }
+
+                Ordering::Equal => {
+                    best_moves.push(next_move);
+                }
+
+                _ => {}
             }
         }
 
