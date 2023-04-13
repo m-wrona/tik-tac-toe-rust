@@ -4,6 +4,7 @@ use crate::game::{Coordinate, Error, NO_MOVE, NO_PLAYER, PlayerID, WINNING_COORD
 use crate::player::Player;
 
 pub type Score = i8;
+pub type NextMoveStrategy = fn(possible_moves: Vec<Coordinate>) -> Coordinate;
 
 const AI_SCORE_LOST: Score = -10;
 const AI_SCORE_DRAW: Score = 0;
@@ -13,14 +14,33 @@ const AI_SCORE_DISTURB: Score = 10;
 #[derive(Debug)]
 pub struct AIPlayer {
     player_id: PlayerID,
-    random_moves: bool,
+    move_strategy: NextMoveStrategy,
 }
 
+
 impl AIPlayer {
-    pub fn new(id: PlayerID, random_moves: bool) -> Self {
+    pub fn first_move_strategy() -> NextMoveStrategy {
+        return |possible_moves: Vec<Coordinate>| -> Coordinate {
+            return possible_moves.clone().swap_remove(0);
+        };
+    }
+
+    pub fn random_move_strategy() -> NextMoveStrategy {
+        return |possible_moves: Vec<Coordinate>| -> Coordinate {
+            let next: usize = random();
+            let idx: usize = next % possible_moves.len();
+            return possible_moves.clone().swap_remove(idx);
+        };
+    }
+
+    pub fn new(id: PlayerID) -> Self {
+        return Self::new_with_strategy(id, Self::first_move_strategy());
+    }
+
+    pub fn new_with_strategy(player_id: PlayerID, move_strategy: NextMoveStrategy) -> Self {
         Self {
-            player_id: id,
-            random_moves,
+            player_id,
+            move_strategy,
         }
     }
 
@@ -30,7 +50,7 @@ impl AIPlayer {
         let mut score = AI_SCORE_DRAW;
         let mut next_coordinate = NO_MOVE;
         for coordinate in coordinates {
-            if b[coordinate] != NO_PLAYER {
+            if b[coordinate] == NO_PLAYER {
                 if next_coordinate == NO_MOVE {
                     next_coordinate = coordinate
                 }
@@ -65,25 +85,195 @@ impl Player for AIPlayer {
 
     fn next_move(&self, b: crate::game::Board) -> Result<Coordinate, Error> {
         let mut best_score = AI_SCORE_LOST;
-        let mut best_next_moves = Vec::new();
+        let mut best_moves = Vec::new();
 
         for coordinates in WINNING_COORDINATES {
             let (next_move, score) = self.evaluate_next_move(b, coordinates);
             if score > best_score {
                 best_score = score;
-                best_next_moves.clear();
-                best_next_moves.push(next_move);
+                best_moves.clear();
+                best_moves.push(next_move);
             } else if score == best_score {
-                best_next_moves.push(next_move);
+                best_moves.push(next_move);
             }
         }
 
-        return Ok(if self.random_moves {
-            let next: usize = random();
-            let idx: usize = next % best_next_moves.len();
-            best_next_moves.swap_remove(idx)
-        } else {
-            best_next_moves.pop().unwrap_or(NO_MOVE)
-        });
+        if best_moves.is_empty() {
+            return Ok(NO_MOVE);
+        }
+
+        let next_move = (self.move_strategy)(best_moves);
+        return Ok(next_move);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::ops::Bound::Included;
+
+    use crate::game::{NO_MOVE, NO_PLAYER, PlayerID};
+    use crate::player::Player;
+    use crate::player_ai::{AI_SCORE_DISTURB, AI_SCORE_DRAW, AI_SCORE_LOST, AI_SCORE_WIN, AIPlayer};
+
+    #[test]
+    fn should_evaluate_first_winning_move() {
+        let id: PlayerID = 1;
+        let ai = AIPlayer::new(id);
+        let (next_move, score) = ai.evaluate_next_move(
+            [
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            ],
+            [0, 1, 2],
+        );
+        assert_eq!(next_move, 0, "wrong first move");
+        assert_eq!(score, AI_SCORE_WIN / 3, "wrong score");
+    }
+
+    #[test]
+    fn should_evaluate_second_winning_move() {
+        let id: PlayerID = 1;
+        let ai = AIPlayer::new(id);
+        let (next_move, score) = ai.evaluate_next_move(
+            [
+                id, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            ],
+            [0, 1, 2],
+        );
+        assert_eq!(next_move, 1, "wrong first move");
+        assert_eq!(score, AI_SCORE_WIN / 2, "wrong score");
+    }
+
+    #[test]
+    fn should_evaluate_third_winning_move() {
+        let id: PlayerID = 1;
+        let ai = AIPlayer::new(id);
+        let (next_move, score) = ai.evaluate_next_move(
+            [
+                id, id, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            ],
+            [0, 1, 2],
+        );
+        assert_eq!(next_move, 2, "wrong first move");
+        assert_eq!(score, AI_SCORE_WIN, "wrong score");
+    }
+
+    #[test]
+    fn should_evaluate_no_move_when_game_is_lost() {
+        let id: PlayerID = 1;
+        let id2: PlayerID = 2;
+        let ai = AIPlayer::new(id);
+        let (next_move, score) = ai.evaluate_next_move(
+            [
+                id2, id2, id2,
+                id2, id2, id2,
+                id2, id2, id2,
+            ],
+            [0, 1, 2],
+        );
+        assert_eq!(next_move, NO_MOVE, "wrong first move");
+        assert_eq!(score, AI_SCORE_LOST, "wrong score");
+    }
+
+    #[test]
+    fn should_evaluate_a_move_when_game_is_a_draw() {
+        let id: PlayerID = 1;
+        let id2: PlayerID = 2;
+        let ai = AIPlayer::new(id);
+        let (next_move, score) = ai.evaluate_next_move(
+            [
+                id2, id2, id2,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            ],
+            [0, 1, 2],
+        );
+        assert_eq!(next_move, NO_MOVE, "wrong first move");
+        assert_eq!(score, AI_SCORE_LOST, "wrong score");
+    }
+
+    #[test]
+    fn should_evaluate_a_disturb_move_when_game_will_be_lost() {
+        let id: PlayerID = 1;
+        let id2: PlayerID = 2;
+        let ai = AIPlayer::new(id);
+        let (next_move, score) = ai.evaluate_next_move(
+            [
+                NO_PLAYER, id2, id2,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+                NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            ],
+            [0, 1, 2],
+        );
+        assert_eq!(next_move, 0, "wrong first move");
+        assert_eq!(score, AI_SCORE_DISTURB, "wrong score");
+    }
+
+    #[test]
+    fn should_make_first_move() {
+        let id: PlayerID = 1;
+        let ai = AIPlayer::new(id);
+        let next_move = ai.next_move([
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ]).unwrap();
+        assert_eq!(next_move, 0, "wrong first move");
+    }
+
+    #[test]
+    fn should_make_a_winning_move() {
+        let id: PlayerID = 1;
+        let ai = AIPlayer::new(id);
+        let next_move = ai.next_move([
+            NO_PLAYER, id, id,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ]).unwrap();
+        assert_eq!(next_move, 0, "wrong winning move");
+    }
+
+    #[test]
+    fn should_make_a_draw_move() {
+        let id: PlayerID = 1;
+        let id2: PlayerID = 2;
+        let ai = AIPlayer::new(id);
+        let next_move = ai.next_move([
+            NO_PLAYER, id2, id2,
+            id, id, id2,
+            id2, id, id,
+        ]).unwrap();
+        assert_eq!(next_move, 0, "wrong winning move");
+    }
+
+    #[test]
+    fn should_make_a_disturb_move() {
+        let id: PlayerID = 1;
+        let id2: PlayerID = 2;
+        let ai = AIPlayer::new(id);
+        let next_move = ai.next_move([
+            NO_PLAYER, id2, id2,
+            id, NO_PLAYER, id2,
+            id2, id, id,
+        ]).unwrap();
+        assert_eq!(next_move, 0, "wrong winning move");
+    }
+
+    #[test]
+    fn should_make_a_disturb_move_variant_2() {
+        let id: PlayerID = 1;
+        let id2: PlayerID = 2;
+        let ai = AIPlayer::new(id);
+        let next_move = ai.next_move([
+            id, id2, id2,
+            id2, NO_PLAYER, id2,
+            id2, id, NO_PLAYER,
+        ]).unwrap();
+        assert_eq!(next_move, 4, "wrong winning move");
     }
 }

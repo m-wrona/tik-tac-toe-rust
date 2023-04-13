@@ -42,8 +42,8 @@ impl State {
     }
 
     pub fn make_move(&self, player_id: PlayerID, x: Coordinate) -> Result<State, Error> {
-        if player_id!= self.players[0] && player_id!=self.players[1] {
-            return Err(format!("player {} doesn't play this game", player_id))
+        if player_id != self.players[0] && player_id != self.players[1] {
+            return Err(format!("player {} doesn't play this game", player_id));
         }
 
         let (winner, finished) = self.is_finished();
@@ -94,10 +94,18 @@ mod tests {
         let id: PlayerID = 1;
         let s1 = s0.make_move(id, 0).unwrap();
 
-        assert_eq!(s0.board, [0, 0, 0, 0, 0, 0, 0, 0, 0], "invalid initial state");
+        assert_eq!(s0.board, [
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ], "invalid initial state");
         assert_eq!(s0.is_finished(), (NO_PLAYER, false), "game shouldn't be finished");
 
-        assert_eq!(s1.board, [id, 0, 0, 0, 0, 0, 0, 0, 0], "invalid state after move");
+        assert_eq!(s1.board, [
+            id, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ], "invalid state after move");
         assert_eq!(s1.is_finished(), (NO_PLAYER, false), "game shouldn't be finished");
     }
 
@@ -105,7 +113,11 @@ mod tests {
     fn should_not_make_a_move_when_game_finished() {
         let id: PlayerID = 5;
         let mut s0 = State::new(id, 2);
-        s0.board = [id, id, id, 0, 0, 0, 0, 0, 0];
+        s0.board = [
+            id, id, id,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ];
 
         let s1 = s0.make_move(id, 4);
         assert_eq!(s1.is_err(), true, "move should fail");
@@ -115,9 +127,13 @@ mod tests {
     #[test]
     fn should_not_make_a_move_when_field_taken() {
         let id: PlayerID = 5;
-        let id2 :PlayerID=7;
+        let id2: PlayerID = 7;
         let mut s0 = State::new(id, id2);
-        s0.board = [id2, id, id, 0, 0, 0, 0, 0, 0];
+        s0.board = [
+            id2, id, id,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ];
 
         let s1 = s0.make_move(id, 0);
         assert_eq!(s1.is_err(), true, "move should fail");
@@ -141,7 +157,12 @@ mod tests {
             .and_then(|s| s.make_move(id, 1))
             .and_then(|s| s.make_move(id, 2))
             .unwrap();
-        assert_eq!(s1.board, [id, id, id, 0, 0, 0, 0, 0, 0], "invalid state after move");
+
+        assert_eq!(s1.board, [
+            id, id, id,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+            NO_PLAYER, NO_PLAYER, NO_PLAYER,
+        ], "invalid state after move");
         assert_eq!(s1.is_finished(), (id, true), "game must be finished");
     }
 
